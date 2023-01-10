@@ -1,5 +1,6 @@
 import {useState, useEffect} from 'react'
 import {TopBar, Feed, AddPoll} from './components'
+import {BrowserRouter, Routes, Route, Link} from 'react-router-dom'
 
 const App = () => {
 
@@ -20,27 +21,33 @@ const App = () => {
   })
 
   return (
-    <div className="App">
+    <BrowserRouter>
       <TopBar
         username={username}
         theme={theme}
         setActivePage={setActivePage}
         setActiveUser={setUsername}
       />
-      {activePage === 'feed' &&
-        <Feed
-          username={username}
-          theme={theme}
+      <div style={{height: '64px'}} />
+      <Routes>
+        <Route
+          path='/add'
+          element={<AddPoll
+            username={username}
+            theme={theme}
+            setActivePage={setActivePage}
+          />}
         />
-      }
-      {activePage === 'addpoll' &&
-        <AddPoll
-          username={username}
-          theme={theme}
-          setActivePage={setActivePage}
-        />
-      }
-    </div>
+        <Route
+          path='/'
+          element={
+            <Feed
+              username={username}
+              theme={theme}
+            />}
+          />
+      </Routes>
+    </BrowserRouter>
   )
 }
 

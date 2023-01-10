@@ -23,8 +23,15 @@ const Feed = ({username, theme}) => {
   return (
     <Container maxWidth='xs'>
       <Box alignItems='center' display='flex' justifyContent='center' fullWidth>
-        <Button onClick={() => setSortBy('top')} >Top</Button>
-        <Button onClick={() => setSortBy('new')}>New</Button>
+        <Button
+          sx={{color: sortBy === 'top' ? `#${theme.accent}` : 'black'}}
+          onClick={() => setSortBy('top')}
+        >Top</Button>
+        &nbsp;/&nbsp;
+        <Button
+          sx={{color: sortBy === 'new' ? `#${theme.accent}` : 'black'}}
+          onClick={() => setSortBy('new')}
+        >New</Button>
       </Box>
       {feed && feed.map(p => <FeedCard
         poll={p}

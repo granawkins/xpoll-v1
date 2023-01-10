@@ -1,7 +1,8 @@
 import {useState, useEffect} from 'react'
+import {AppBar, Toolbar, Typography, Button, Input, Select, MenuItem} from '@mui/material'
 import axios from 'axios'
 
-const TopBar = ({activeUser, setActiveUser, setActivePage}) => {
+const TopBar = ({activeUser, setActiveUser, setActivePage, theme}) => {
 
     // GET USERS
   const [users, setUsers] = useState([])
@@ -45,13 +46,12 @@ const TopBar = ({activeUser, setActiveUser, setActivePage}) => {
   }, [users])
 
   return (
-    <div style={{
-        display: 'flex',
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        borderBottom: '1px solid black',
-    }}>
-        <h3>xPoll</h3>
+    <AppBar sx={{backgroundColor: 'white'}}>
+      <Toolbar>
+        <Typography sx={{color: `#${theme.accent}`, fontSize: '2em', fontWeight: '800'}}>x</Typography>
+        <Typography color='black' sx={{fontSize: '2em', fontWeight: '800'}}>poll</Typography>
+
+        <div style={{flexGrow: 1}} />
         <div style={{
             display: 'flex',
             flexDirection: 'row',
@@ -66,7 +66,8 @@ const TopBar = ({activeUser, setActiveUser, setActivePage}) => {
               {users.map(u => <option key={`active_user_${u}`}>{u}</option>)}
             </select>
         </div>
-    </div>
+      </Toolbar>
+    </AppBar>
   )
 }
 
