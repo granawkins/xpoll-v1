@@ -114,6 +114,7 @@ const FeedCard = ({poll, username, theme}) => {
         />)}
         {/* Add Filter */}
         {showAddFilter && <AddFilter
+          theme={theme}
           pollData={pollData}
           filterData={filterData}
           activeFilters={activeFilters}

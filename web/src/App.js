@@ -1,13 +1,30 @@
 import {useState, useEffect} from 'react'
-import {TopBar, Feed, AddPoll} from './components'
+import {TopBar, Feed, AddPoll, Account} from './components'
 import {BrowserRouter, Routes, Route, Link} from 'react-router-dom'
+import axios from 'axios'
 
 const App = () => {
 
-  const [activePage, setActivePage] = useState('feed')
   const [username, setUsername] = useState(null)
+  useEffect(() => {
+    if (!username) {
+      try {
+        axios.get('/get_users')
+          .then((res) => {
+            if (res.data.successful) {
+              setUsername(res.data.data[0])
+            } else {
+              console.log('Error', res)
+            }
+          })
+      } catch (e) {
+        console.log('Error', e)
+      }
+    }
+  }, [])
   const [theme, setTheme] = useState({
     accent: 'FF5C46', // Red
+    offset: '626262', // Dark Gray
     chartBase: '9FD6FB', // Light blue
     chartColors: [
       'EBC58D', // Brown
@@ -22,31 +39,38 @@ const App = () => {
 
   return (
     <BrowserRouter>
-      <TopBar
-        username={username}
-        theme={theme}
-        setActivePage={setActivePage}
-        setActiveUser={setUsername}
-      />
+      <TopBar theme={theme} />
       <div style={{height: '64px'}} />
-      <Routes>
-        <Route
-          path='/add'
-          element={<AddPoll
-            username={username}
-            theme={theme}
-            setActivePage={setActivePage}
-          />}
-        />
-        <Route
-          path='/'
-          element={
-            <Feed
+      {username
+        ? <Routes>
+          <Route
+            path='/new'
+            element={<AddPoll
               username={username}
               theme={theme}
             />}
           />
-      </Routes>
+          <Route
+            path='/account'
+            element={
+              <Account
+              username={username}
+              theme={theme}
+              setUsername={setUsername}
+              />}
+            />
+          <Route
+            path='/'
+            element={
+              <Feed
+                username={username}
+                setUsername={setUsername}
+                theme={theme}
+              />}
+            />
+        </Routes>
+        : <p>Loading</p>
+      }
     </BrowserRouter>
   )
 }

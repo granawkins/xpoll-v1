@@ -22,14 +22,14 @@ const Feed = ({username, theme}) => {
 
   return (
     <Container maxWidth='xs'>
-      <Box alignItems='center' display='flex' justifyContent='center' fullWidth>
+      <Box alignItems='center' display='flex' justifyContent='center'>
         <Button
-          sx={{color: sortBy === 'top' ? `#${theme.accent}` : 'black'}}
+          sx={{color: 'black', fontWeight: sortBy === 'top' ? 800 : 400}}
           onClick={() => setSortBy('top')}
         >Top</Button>
         &nbsp;/&nbsp;
         <Button
-          sx={{color: sortBy === 'new' ? `#${theme.accent}` : 'black'}}
+          sx={{color: 'black', fontWeight: sortBy === 'new' ? 800 : 400}}
           onClick={() => setSortBy('new')}
         >New</Button>
       </Box>
