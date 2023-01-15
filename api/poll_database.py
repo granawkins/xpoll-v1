@@ -1,11 +1,12 @@
 import json
+from collections import Counter
 import numpy as np
 from neo4j import GraphDatabase
 from sample_data import USERS, POLLS
 
 URI = "bolt://localhost:7687"
 USER = "neo4j"
-PASSWORD = "188/A10NguyenVanHuong"
+PASSWORD = "password"
 
 class PollDatabase:
 
@@ -140,18 +141,46 @@ class PollDatabase:
 
     def get_poll(self, poll_id, username=None, filters=None):
         def _get_poll(tx, poll_id):
+            # Poll Data
             result = tx.run("MATCH (p:Poll) WHERE p.poll_id = $poll_id RETURN p", poll_id=poll_id)
-            res = result.single()[0]
-            res = dict(res)
-            res['answers'] = json.loads(res['answers'])
+            response = dict(result.single()[0])
+            response['answers'] = json.loads(response['answers'])
+            # Vote Count
+            result = tx.run("MATCH (p:Poll {poll_id: $poll_id})<-[r:VOTE]-() "
+                            "RETURN count(r) as count", poll_id=poll_id)
+            response['votes'] = int(result.single()['count'])
+            # User Answer
+            user_answer = tx.run("MATCH (u:User)-[r:VOTE]->(p:Poll) "
+                                 "WHERE u.name = $username AND p.poll_id = $poll_id "
+                                 "RETURN r.answer as answer", username=username, poll_id=poll_id)
+            u = user_answer.single()
+            if u is None:
+                return response
+            response['user_answer'] = int(u['answer'])
+            # Tally Votes
+            if filters is None:
+                votes = tx.run("MATCH (p:Poll {poll_id: $poll_id})<-[r:VOTE]-() "
+                               "RETURN r.answer as answer", poll_id=poll_id)
+            else:
+                # Filter votes
+                match_query = "MATCH (u:User)-[r:VOTE]->(p:Poll)"
+                where_query = " WHERE p.poll_id = $poll_id"
+                kwargs = {'poll_id': poll_id}
+                for i, (filter_id, answer) in enumerate(filters.items()):
+                    match_query += f", (u)-[r{i}:VOTE]->(f{i}:Poll)"
+                    where_query += f' AND r{i}.answer = $answer{i} AND f{i}.poll_id = $filter{i}'
+                    kwargs[f'answer{i}'] = answer
+                    kwargs[f'filter{i}'] = filter_id
+                query = match_query + where_query + " RETURN r.answer as answer"
+                votes = tx.run(query, kwargs)
 
-            answers = list(range(len(res['answers'])))
-            votes = tx.run("FOREACH (answer in $answers | "
-                           "MATCH ()-[r:VOTE {answer: answer}]->(p:Poll {poll_id: $poll_id}) "
-                           "RETURN COUNT(r)"
-                           ")", answers=answers, poll_id=poll_id)
-            res['votes'] = list(votes)
-            return res
+            votes = [r['answer'] for r in votes]
+            response['votes'] = len(votes)
+            tallied = dict(Counter(votes))
+            results = [tallied.get(i, 0) for i in range(len(response['answers']))]
+            response['results'] = results
+            return response
+
         with self.driver.session() as session:
             res = session.execute_read(_get_poll, poll_id)
             return res
@@ -190,33 +219,43 @@ class PollDatabase:
 if __name__ == '__main__':
     pd = PollDatabase(URI, USER, PASSWORD)
 
-    # pd.refresh()
+    pd.refresh()
 
-    # for u in USERS:
-    #     pd.add_user(u)
-    # users = pd.get_users(items_per_page=100)
-    # print(users)
+    for u in USERS:
+        pd.add_user(u)
+    users = pd.get_users(items_per_page=100)
+    print(users)
 
-    # for i, p in enumerate(POLLS):
-    #     i_author = i % len(USERS)
-    #     author = USERS[i_author]
-    #     try:
-    #         poll = pd.add_poll(author, p['question'], p['answers'])
-    #         print(poll)
-    #     except Exception as e:
-    #         print(e)
+    for i, p in enumerate(POLLS):
+        i_author = i % len(USERS)
+        author = USERS[i_author]
+        try:
+            poll = pd.add_poll(author, p['question'], p['answers'])
+            # print(poll)
+        except Exception as e:
+            print(e)
 
     poll_ids = pd.get_poll_ids(items_per_page=100)
-    polls = {id: pd.get_poll(id) for id in poll_ids}
-    print([f'{k}: {v["question"], v["votes"]}' for k, v in polls.items()])
+    polls = {p: pd.get_poll(p, username=users[0]) for p in poll_ids}
 
-    # rng = np.random.default_rng()
-    # for i, voter in enumerate(users):
-    #     n_votes = rng.integers(1, len(poll_ids))
-    #     vote_on_poll = rng.choice(poll_ids, n_votes, replace=False)
-    #     for poll_id in vote_on_poll:
-    #         answer_id = rng.integers(0, len(polls[poll_id]['answers']))
-    #         vote = pd.vote(voter, poll_id, int(answer_id))
-    #     print(f'{voter}: {len(vote_on_poll)} votes')
+    rng = np.random.default_rng()
+    for i, voter in enumerate(users):
+        n_votes = len(poll_ids) #rng.integers(5, len(poll_ids))
+        vote_on_poll = rng.choice(poll_ids, n_votes, replace=False)
+        for poll_id in vote_on_poll:
+            answer_id = rng.integers(0, len(polls[poll_id]['answers']))
+            vote = pd.vote(voter, poll_id, int(answer_id))
+        print(f'{voter}: {len(vote_on_poll)} votes')
+    polls = {p: pd.get_poll(p) for p in poll_ids}
+
+    for i, poll_id in enumerate(poll_ids):
+        base_votes = polls[poll_id]['votes']
+        filter_id = rng.choice(poll_ids)
+        filtered_poll = pd.get_poll(poll_id, username=users[0], filters={filter_id: 0})
+        if filtered_poll is None:
+            continue
+        filtered_votes = filtered_poll['votes']
+        print(f'Poll {poll_id} base votes: {base_votes}, filtered by {filter_id} votes: {filtered_votes}')
+        break
 
     pd.close()
