@@ -1,13 +1,15 @@
 import {useState, useEffect} from 'react'
 import {Container, Box, Typography, TextField, Button, IconButton} from '@mui/material'
+import {useTheme} from '@mui/material/styles'
 import CloseIcon from '@mui/icons-material/Close';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 
 
-const AddPoll = ({username, theme, setActivePage}) => {
+const AddPoll = ({username}) => {
 
+  const theme = useTheme()
   const navigate = useNavigate()
 
   const [question, setQuestion] = useState('')
@@ -66,7 +68,7 @@ const AddPoll = ({username, theme, setActivePage}) => {
         <IconButton onClick={() => navigate('/')}>
           <ArrowBackIcon/>
         </IconButton>
-        <Typography style={{fontWeight: 600, fontSize: '1.4em', color: `#${theme.offset}`}}>New Poll</Typography>
+        <Typography style={{fontWeight: 600, fontSize: '1.4em', color: theme.offset}}>New Poll</Typography>
       </Box>
       <TextField
         size='small'
@@ -96,7 +98,7 @@ const AddPoll = ({username, theme, setActivePage}) => {
       })}
       <Button
         onClick={handleAddPoll}
-        sx={{backgroundColor: `#${theme.accent}`, width: '100%'}}
+        sx={{backgroundColor: theme.accent, width: '100%'}}
         variant='contained'
       >Publish</Button>
       {error &&

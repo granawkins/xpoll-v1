@@ -96,7 +96,6 @@ const FeedCard = ({poll, username, theme}) => {
         <BaseChart
           pollData={pollData}
           handleVote={handleVote}
-          theme={theme}
           colored={colored}
         />
         {/* Filters */}
@@ -109,12 +108,10 @@ const FeedCard = ({poll, username, theme}) => {
           activeFilters={activeFilters}
           setFilterData={setFilterData}
           handleVote={handleVote}
-          theme={theme}
           key={`poll-${pollData.poll_id}-filter-${i}`}
         />)}
         {/* Add Filter */}
         {showAddFilter && <AddFilter
-          theme={theme}
           pollData={pollData}
           filterData={filterData}
           activeFilters={activeFilters}

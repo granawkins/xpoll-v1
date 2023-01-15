@@ -2,8 +2,11 @@ import {useState, useEffect} from 'react'
 import axios from 'axios'
 import FeedCard from './FeedCard'
 import { Container, Box, Typography, Button } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 
-const Feed = ({username, theme}) => {
+const Feed = ({username}) => {
+
+  const theme = useTheme()
 
   // GET Feed
   const [feed, setFeed] = useState(null)
@@ -36,7 +39,6 @@ const Feed = ({username, theme}) => {
       {feed && feed.map(p => <FeedCard
         poll={p}
         username={username}
-        theme={theme}
         key={`feed-card-${p.poll_id}`}
       />)}
     </Container>

@@ -1,9 +1,12 @@
 import {useState, useEffect} from 'react'
 import {Box} from '@mui/material'
+import {useTheme} from '@mui/material/styles'
 import AnswerButton from './lib/AnswerButton'
 import AnswerBar from './lib/AnswerBar'
 
-const BaseChart = ({pollData, colored, handleVote, theme}) => {
+const BaseChart = ({pollData, colored, handleVote}) => {
+
+    const theme = useTheme()
 
     const [percentages, setPercentages] = useState(null)
     useEffect(() => {
@@ -27,7 +30,7 @@ const BaseChart = ({pollData, colored, handleVote, theme}) => {
               answer={answer}
               isUserAnswer={pollData.user_answer === i}
               percentage={percentages[i]}
-              color={`#${colored ? theme.chartColors[i] : theme.chartBase}`}
+              color={colored ? theme.chartColors[i] : theme.chartBase}
             />
             // Vote Button (if not yet voted)
             : <AnswerButton onClick={() => handleVote(pollData.poll_id, i)}>{answer}</AnswerButton>
