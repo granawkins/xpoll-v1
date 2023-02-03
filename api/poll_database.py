@@ -85,8 +85,9 @@ class PollDatabase:
             return False if result is None else any(r['exists'] for r in result)
         if session is not None:
             res = session.execute_read(_poll_exists, poll_id)
-        with self.driver.session() as session:
-            res = session.execute_read(_poll_exists, poll_id)
+        else:
+            with self.driver.session() as session:
+                res = session.execute_read(_poll_exists, poll_id)
         return res
 
     def add_poll(self, author, question, answers):
@@ -150,8 +151,7 @@ class PollDatabase:
                             "RETURN count(r) as count", poll_id=poll_id)
             response['votes'] = int(result.single()['count'])
             # User Answer
-            user_answer = tx.run("MATCH (u:User)-[r:VOTE]->(p:Poll) "
-                                 "WHERE u.name = $username AND p.poll_id = $poll_id "
+            user_answer = tx.run("MATCH (u:User {name: $username})-[r:VOTE]->(p:Poll {poll_id: $poll_id}) "
                                  "RETURN r.answer as answer", username=username, poll_id=poll_id)
             u = user_answer.single()
             if u is None:
@@ -163,15 +163,12 @@ class PollDatabase:
                                "RETURN r.answer as answer", poll_id=poll_id)
             else:
                 # Filter votes
-                match_query = "MATCH (u:User)-[r:VOTE]->(p:Poll)"
-                where_query = " WHERE p.poll_id = $poll_id"
+                query = "MATCH (u:User)-[r:VOTE]->(p:Poll {poll_id: $poll_id})"
                 kwargs = {'poll_id': poll_id}
                 for i, (filter_id, answer) in enumerate(filters.items()):
-                    match_query += f", (u)-[r{i}:VOTE]->(f{i}:Poll)"
-                    where_query += f' AND r{i}.answer = $answer{i} AND f{i}.poll_id = $filter{i}'
-                    kwargs[f'answer{i}'] = answer
-                    kwargs[f'filter{i}'] = filter_id
-                query = match_query + where_query + " RETURN r.answer as answer"
+                    query += f", (u)-[r{i}:VOTE {{answer: $answer{i}}}]->(f{i}:Poll {{poll_id: $filter{i}}})"
+                    kwargs.update({f'answer{i}': answer, f'filter{i}': filter_id})
+                query += " RETURN r.answer as answer"
                 votes = tx.run(query, kwargs)
 
             votes = [r['answer'] for r in votes]

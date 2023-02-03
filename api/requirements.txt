@@ -1,3 +1,5 @@
-networkx
-flask
 pytest
+flask
+numpy
+networkx
+# neo4j
