@@ -18,7 +18,7 @@ const FeedCard = ({poll, username, theme}) => {
 
   const handleVote = async (poll_id, answer_id) => {
     try {
-      const res = await axios.post('vote', {username, poll_id, answer_id})
+      const res = await axios.post('/api/vote', {username, poll_id, answer_id})
       if (res.data.successful) {
         const resData = res.data.data
         if (resData.poll_id == pollData.poll_id) {
@@ -38,7 +38,7 @@ const FeedCard = ({poll, username, theme}) => {
   const [filterData, setFilterData] = useState([])
   const handleAddFilter = (poll_id) => {
     try {
-      axios.post('get_poll', {username, poll_id, filters: activeFilters})
+      axios.post('/api/get_poll', {username, poll_id, filters: activeFilters})
         .then((res) => {
           if (res.data.successful) {
             setFilterData(fd => [...fd, {...res.data.data, selected: null}])
@@ -70,7 +70,7 @@ const FeedCard = ({poll, username, theme}) => {
     if (JSON.stringify(filters) !== JSON.stringify(activeFilters)) {
       try {
         // Fetch with axios; need to update PG func
-        axios.post('get_poll', {username, poll_id: pollData.poll_id, filters})
+        axios.post('/api/get_poll', {username, poll_id: pollData.poll_id, filters})
           .then((res) => {
             setPollData(res.data.data)
             setActiveFilters(filters)

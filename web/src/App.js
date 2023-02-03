@@ -25,7 +25,7 @@ const App = () => {
   useEffect(() => {
     if (!username) {
       try {
-        axios.get('/get_users')
+        axios.get('/api/get_users')
           .then((res) => {
             if (res.data.successful) {
               setUsername(res.data.data[0])

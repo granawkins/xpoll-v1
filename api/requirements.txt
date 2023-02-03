@@ -2,4 +2,4 @@ pytest
 flask
 numpy
 networkx
-# neo4j
+neo4j

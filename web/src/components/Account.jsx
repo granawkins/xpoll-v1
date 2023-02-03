@@ -12,7 +12,7 @@ const Account = ({username, setUsername, theme}) => {
       getUsers()
     }, [])
     const getUsers = () => {
-      axios.get('/get_users')
+      axios.get('/api/get_users')
         .then((res) => {
           setUsers(res.data.data.slice(0, 100))
         })
@@ -26,7 +26,7 @@ const Account = ({username, setUsername, theme}) => {
       setNewUsername(event.target.value)
     }
     const handleAddUser = () => {
-      axios.post('/add_user', {username: newUsername})
+      axios.post('/api/add_user', {username: newUsername})
       .then((res) => {
         if (res.data.successful) {
           setNewUsernameError(null)

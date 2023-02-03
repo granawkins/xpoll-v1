@@ -12,7 +12,7 @@ const Feed = ({username}) => {
   const [feed, setFeed] = useState(null)
   const [sortBy, setSortBy] = useState('top')
   const refreshFeed = () => {
-    axios.post('/feed', {username: username, sort_by: sortBy})
+    axios.post('/api/feed', {username: username, sort_by: sortBy})
     .then((res) => {
       setFeed(res.data.data)
     })
