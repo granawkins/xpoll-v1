@@ -1,13 +1,16 @@
 import {useState, useEffect} from 'react'
 import axios from 'axios'
 import { Typography, Box, Collapse, CircularProgress } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 import { ExpandLess, ExpandMore } from '@mui/icons-material'
 import CancelIcon from '@mui/icons-material/Cancel';
 
 import AnswerButton from './lib/AnswerButton';
 import AnswerBar from './lib/AnswerBar';
 
-const Filter = ({username, source_id, cross_id, filterIndex, filterData, activeFilters, setFilterData, handleVote, theme}) => {
+const Filter = ({username, source_id, cross_id, filterIndex, filterData, activeFilters, setFilterData, handleVote}) => {
+
+  const theme = useTheme()
 
   const [open, setOpen] = useState(true)
   const [crossedData, setCrossedData] = useState(false)
@@ -127,7 +130,7 @@ const Filter = ({username, source_id, cross_id, filterIndex, filterData, activeF
                       key={`poll-${source_id}-filter-${filterIndex}-crossed-answer-${j}`}
                     ><AnswerBar
                         percentage={c}
-                        color={`#${theme.chartColors[j]}`}
+                        color={theme.chartColors[j]}
                         hidePercentage={true}
                         hideAnswer={true}
                     /></Box>

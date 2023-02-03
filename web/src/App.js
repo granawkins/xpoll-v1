@@ -1,46 +1,77 @@
 import {useState, useEffect} from 'react'
-import {TopBar, Feed, AddPoll} from './components'
+import {TopBar, Feed, AddPoll, Account} from './components'
+import {BrowserRouter, Routes, Route, Link} from 'react-router-dom'
+import axios from 'axios'
+import { createTheme, ThemeProvider } from '@mui/material/styles'
+
+const theme = createTheme({
+  accent: '#FF5C46', // Red
+  offset: '#626262', // Dark Gray
+  chartBase: '#9FD6FB', // Light blue
+  chartColors: [
+    '#EBC58D', // Brown
+    '#FAFA66', // Yellow
+    '#9BEBB4', // Green
+    '#9FD6FB', // Light blue
+    '#E6A8D7', // Pink
+    '#00B8D4', // Turquoise
+    '#F7B733', // Orange
+  ]
+})
 
 const App = () => {
 
-  const [activePage, setActivePage] = useState('feed')
   const [username, setUsername] = useState(null)
-  const [theme, setTheme] = useState({
-    accent: 'FF5C46', // Red
-    chartBase: '9FD6FB', // Light blue
-    chartColors: [
-      'EBC58D', // Brown
-      'FAFA66', // Yellow
-      '9BEBB4', // Green
-      '9FD6FB', // Light blue
-      'E6A8D7', // Pink
-      '00B8D4', // Turquoise
-      'F7B733', // Orange
-    ]
-  })
+  useEffect(() => {
+    if (!username) {
+      try {
+        axios.get('/get_users')
+          .then((res) => {
+            if (res.data.successful) {
+              setUsername(res.data.data[0])
+            } else {
+              console.log('Error', res)
+            }
+          })
+      } catch (e) {
+        console.log('Error', e)
+      }
+    }
+  }, [])
 
   return (
-    <div className="App">
-      <TopBar
-        username={username}
-        theme={theme}
-        setActivePage={setActivePage}
-        setActiveUser={setUsername}
-      />
-      {activePage === 'feed' &&
-        <Feed
-          username={username}
-          theme={theme}
-        />
-      }
-      {activePage === 'addpoll' &&
-        <AddPoll
-          username={username}
-          theme={theme}
-          setActivePage={setActivePage}
-        />
-      }
-    </div>
+    <ThemeProvider theme={theme}>
+      <BrowserRouter>
+        <TopBar />
+        <div style={{height: '64px'}} />
+        {username
+          ? <Routes>
+            <Route
+              path='/new'
+              element={<AddPoll
+                username={username}
+              />}
+            />
+            <Route
+              path='/account'
+              element={
+                <Account
+                username={username}
+                setUsername={setUsername}
+                />}
+              />
+            <Route
+              path='/'
+              element={
+                <Feed
+                  username={username}
+                />}
+              />
+          </Routes>
+          : <p>Loading</p>
+        }
+      </BrowserRouter>
+    </ThemeProvider>
   )
 }
 

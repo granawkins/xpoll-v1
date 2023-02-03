@@ -2,8 +2,11 @@ import {useState, useEffect} from 'react'
 import axios from 'axios'
 import FeedCard from './FeedCard'
 import { Container, Box, Typography, Button } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 
-const Feed = ({username, theme}) => {
+const Feed = ({username}) => {
+
+  const theme = useTheme()
 
   // GET Feed
   const [feed, setFeed] = useState(null)
@@ -22,14 +25,20 @@ const Feed = ({username, theme}) => {
 
   return (
     <Container maxWidth='xs'>
-      <Box alignItems='center' display='flex' justifyContent='center' fullWidth>
-        <Button onClick={() => setSortBy('top')} >Top</Button>
-        <Button onClick={() => setSortBy('new')}>New</Button>
+      <Box alignItems='center' display='flex' justifyContent='center'>
+        <Button
+          sx={{color: 'black', fontWeight: sortBy === 'top' ? 800 : 400}}
+          onClick={() => setSortBy('top')}
+        >Top</Button>
+        &nbsp;/&nbsp;
+        <Button
+          sx={{color: 'black', fontWeight: sortBy === 'new' ? 800 : 400}}
+          onClick={() => setSortBy('new')}
+        >New</Button>
       </Box>
       {feed && feed.map(p => <FeedCard
         poll={p}
         username={username}
-        theme={theme}
         key={`feed-card-${p.poll_id}`}
       />)}
     </Container>

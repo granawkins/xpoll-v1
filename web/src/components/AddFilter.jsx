@@ -1,9 +1,12 @@
 import {useState, useEffect} from 'react'
 import {Box, Button, FormControl, InputLabel, Select, MenuItem} from '@mui/material'
+import {useTheme} from '@mui/material/styles'
 import CancelIcon from '@mui/icons-material/Cancel'
 import axios from 'axios'
 
 const AddFilter = ({pollData, filterData, activeFilters, handleAddFilter}) => {
+
+  const theme = useTheme()
 
   const [suggestedFilters, setSuggestedFilters] = useState(null)
   const getSuggestedFilters = () => {
@@ -53,7 +56,7 @@ const AddFilter = ({pollData, filterData, activeFilters, handleAddFilter}) => {
           textTransform: 'none',
           borderRadius: 15,
           variant: "outlined",
-          color: '#FF5C46'
+          color: theme.accent,
         }}
         >Filter results by another poll</Button>
       }

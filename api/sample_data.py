@@ -30,18 +30,32 @@ POLLS = [
      'answers': ['Conservative', 'Liberal', 'Libertarian', 'Socialist', 'Green/Environmental', 'Moderate', 'Other']},  # 11. POLITICS
 ]
 
-def add_samples(G):
+import numpy as np
+
+def add_samples(G, n_voters=26):
     """Load sample data into PollGraph object"""
-    for user in USERS:
-        G.add_user(user)
+
+    # Add Users
+    rng = np.random.default_rng()
+    for i in range(n_voters):
+        first_name = USERS[i % len(USERS)]
+        last_name = rng.choice([l for l in 'abcdefghijklmnopqrstuvwxyz'], 10)
+        last_name = str(''.join([l for l in last_name])).capitalize()
+        G.add_user(f'{first_name} {last_name}')
+
+    # Add Polls
+    users = G.get_users()
     for i, poll in enumerate(POLLS):
-        i_user = i % len(USERS)
-        G.add_poll(USERS[i_user], POLLS[i]['question'], POLLS[i]['answers'])
+        author = rng.choice(users)
+        G.add_poll(author, POLLS[i]['question'], POLLS[i]['answers'])
+
+    # Vote
     poll_ids = G.get_poll_ids()
-    for i, voter in enumerate(USERS):
-        n_votes = 3 if i % 2 > 0 else 5
-        for j, poll_id in enumerate(poll_ids[:n_votes]):
-            answer_id = i % (len(POLLS[j]['answers']))
-            G.vote(voter, poll_id, answer_id)
+    for i, voter in enumerate(users):
+        n_votes = rng.integers(0, len(poll_ids))
+        vote_on_poll = rng.choice(poll_ids, n_votes, replace=False)
+        for poll_id in vote_on_poll:
+            answer_id = rng.integers(0, len(G.G.nodes[poll_id]['answers']))
+            G.vote(voter, poll_id, int(answer_id))
     return G
 

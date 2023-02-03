@@ -1,72 +1,43 @@
 import {useState, useEffect} from 'react'
+import {AppBar, Toolbar, Typography, IconButton, Button} from '@mui/material'
+import { useTheme } from '@mui/material/styles'
+import AccountCircleIcon from "@mui/icons-material/AccountCircle"
+import { useLocation, Link } from 'react-router-dom'
+
 import axios from 'axios'
 
-const TopBar = ({activeUser, setActiveUser, setActivePage}) => {
+const TopBar = () => {
 
-    // GET USERS
-  const [users, setUsers] = useState([])
-  useEffect(() => {
-    getUsers()
-  }, [])
-  const getUsers = () => {
-    axios.get('/get_users')
-      .then((res) => {
-        setUsers(res.data)
-      })
-  }
+  const theme = useTheme()
 
-  // ADD USER
-  const [newUsername, setNewUsername] = useState('')
-  const [newUsernameError, setNewUsernameError] = useState(null)
-  const handleNewUsername = (event) => {
-    setNewUsernameError(null)
-    setNewUsername(event.target.value)
-  }
-  const handleAddUser = () => {
-    axios.post('/add_user', {username: newUsername})
-    .then((res) => {
-      if (res.data.successful) {
-        setNewUsernameError(null)
-        getUsers()
-      } else {
-        setNewUsernameError(res.data.error)
-      }
-    })
-  }
-
-  // SET ACTIVE USER
-  const handleSetActiveUser = (event) => {
-    setActiveUser(event.target.value)
-  }
-  useEffect(() => {
-    if (!activeUser && users.length > 0) {
-      setActiveUser(users[0])
-    }
-  }, [users])
+  const location = useLocation()
 
   return (
-    <div style={{
-        display: 'flex',
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        borderBottom: '1px solid black',
-    }}>
-        <h3>xPoll</h3>
-        <div style={{
-            display: 'flex',
-            flexDirection: 'row',
-            alightContent: 'center',
-        }}>
-            <button onClick={() => setActivePage('addpoll')}>Add New Poll</button>
-            <input type='text' value={newUsername} onChange={handleNewUsername}/>
-            <button onClick={handleAddUser}>Add New User</button>
-            {newUsernameError && <p style={{color: 'red'}}>{newUsernameError}</p>}
+    <AppBar sx={{backgroundColor: 'white'}}>
+      <Toolbar>
+        <Link to='/' style={{textDecoration: 'none'}}>
+          <Button style={{textTransform: 'none'}}>
+              <Typography sx={{color: theme.accent, fontSize: '2em', fontWeight: '800'}}>x</Typography>
+              <Typography color='black' sx={{fontSize: '2em', fontWeight: '800'}}>poll</Typography>
+          </Button>
+        </Link>
 
-            <select selected={activeUser} onChange={handleSetActiveUser}>
-              {users.map(u => <option key={`active_user_${u}`}>{u}</option>)}
-            </select>
-        </div>
-    </div>
+        <div style={{flexGrow: 1}} />
+        {location.pathname !== '/new' &&
+          <Link to='/new' style={{textDecoration: 'none'}}>
+            <Button variant='contained' size="small" sx={{backgroundColor: theme.accent}}>
+              New Poll
+            </Button>
+          </Link>
+        }
+        <div style={{width: '1em'}} />
+        <Link to='/account' style={{textDecoration: 'none'}}>
+          <IconButton onClick={() => console.log('go to profile page')}  style={{color: theme.offset}}>
+            <AccountCircleIcon />
+          </IconButton>
+        </Link>
+      </Toolbar>
+    </AppBar>
   )
 }
 

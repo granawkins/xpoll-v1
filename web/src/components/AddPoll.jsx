@@ -1,59 +1,110 @@
 import {useState, useEffect} from 'react'
+import {Container, Box, Typography, TextField, Button, IconButton} from '@mui/material'
+import {useTheme} from '@mui/material/styles'
+import CloseIcon from '@mui/icons-material/Close';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 
-const AddPoll = ({username, setActivePage}) => {
 
-  // ADD POLL
-  const [error, setError] = useState('')
+const AddPoll = ({username}) => {
+
+  const theme = useTheme()
+  const navigate = useNavigate()
+
   const [question, setQuestion] = useState('')
-  const [answer1, setAnswer1] = useState('')
-  const [answer2, setAnswer2] = useState('')
-  const [answer3, setAnswer3] = useState('')
-  const [answer4, setAnswer4] = useState('')
-  const [activeQuestion, setActiveQuestion] = useState({})
-  useEffect(() => {
-    setActiveQuestion({
-      username: username,
-      question: '',
-      answers: ['', '', '', ''],
-    })
-  }, [])
-  const handleFieldChange = (event) => {
-    const newQuestion = JSON.parse(JSON.stringify(activeQuestion))
-    const field = event.target.id
-    const value = event.target.value
-    if (field === 'question') {
-      newQuestion[field] = value
-    } else if (field.startsWith('answer')) {
-      const i_answer = field.slice(6)
-      newQuestion.answers[i_answer] = value
+  const handleSetQuestion = (q) => {
+    if (error) {
+      setError(false)
     }
-    setActiveQuestion(newQuestion)
+    setQuestion(q.target.value)
+  }
+  const [answers, setAnswers] = useState(['', ''])
+  const handleSetAnswer = (i, event) => {
+    if (error) {setError(false)}
+    const newAnswers = answers.map((ans, j) => j === i ? event.target.value : ans)
+    if (newAnswers[newAnswers.length-1] !== '' && newAnswers.length < 7) {
+      newAnswers.push('')
+    }
+    setAnswers(newAnswers)
+  }
+  const handleRemove = (i) => {
+    const newAnswers = answers.filter((a, j) => j !== i)
+    console.log("removing answer", i)
+    console.log(newAnswers)
+
+    setAnswers(newAnswers)
   }
 
+  const [error, setError] = useState(false)
   const handleAddPoll = () => {
-    axios.post('/add_poll', activeQuestion)
-      .then((res) => {
-        if (res.data.successful) {
-          setActivePage('feed')
-        } else {
-          setError(res.data.error)
-        }
-      })
+    if (question === '') {
+      setError('Question must not be empty. ')
+      return
+    }
+    const validAnswers = answers.filter(a => a !== '')
+    if (validAnswers.length < 2) {
+      setError('Must give at least 2 answers. ')
+      return
+    }
+    const newPoll = {username, question, answers: validAnswers}
+    try {
+      axios.post('/add_poll', newPoll)
+        .then((res) => {
+          if (res.data.successful) {
+            navigate('/')
+          } else {
+            setError(res.data.error)
+          }
+        })
+    } catch(e) {
+      setError(e)
+    }
   }
 
   return (
-    <div>
-      <h3>Add Poll</h3>
-      <table><tbody>
-        <tr><td>Question <input type='text' value={activeQuestion.question} onChange={handleFieldChange} id='question' /></td></tr>
-        {activeQuestion.answers && activeQuestion.answers.map((a, i) => {
-          return <tr><td>Answer 1 <input type='text' value={a} onChange={handleFieldChange} id={`answer${i}`} /></td></tr>
-        })}
-      </tbody></table>
-      <button onClick={handleAddPoll}>Add</button>
-      {error && <p style={{color: 'red'}}>{error}</p>}
-    </div>
+    <Container sx={{padding: '2em', maxWidth: '450px'}}>
+      <Box display='flex' alignItems='center' marginBottom='2em'>
+        <IconButton onClick={() => navigate('/')}>
+          <ArrowBackIcon/>
+        </IconButton>
+        <Typography style={{fontWeight: 600, fontSize: '1.4em', color: theme.offset}}>New Poll</Typography>
+      </Box>
+      <TextField
+        size='small'
+        placeholder='Question'
+        sx={{width: '100%'}}
+        onChange={handleSetQuestion}
+        multiline
+      />
+      <hr style={{margin: '1em'}}/>
+      {answers.map((a, i) => {
+        return (
+          <div key={`answer-${i}`} style={{marginBottom: '1em', display: 'flex', flexDirection: 'row', alignItems: 'center'}}>
+            <TextField size='small'
+              value={answers[i]}
+              placeholder={`Answer ${i+1}`}
+              sx={{width: '100%'}}
+              onChange={e => handleSetAnswer(i, e)}
+              multiline
+            />
+            {answers.length > 2 &&
+              <IconButton onClick={() => handleRemove(i)}>
+                <CloseIcon/>
+              </IconButton>
+            }
+          </div>
+        )
+      })}
+      <Button
+        onClick={handleAddPoll}
+        sx={{backgroundColor: theme.accent, width: '100%'}}
+        variant='contained'
+      >Publish</Button>
+      {error &&
+        <p style={{color: 'red'}}>{error}</p>
+      }
+    </Container>
   )
 }
 

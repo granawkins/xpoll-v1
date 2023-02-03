@@ -61,7 +61,7 @@ class PollGraph:
                 len(answers) > 0 and
                 all(isinstance(o, str) for o in answers)), f"Answers must be a list of strings"
 
-        poll_id = hex(abs(hash(''.join([username, question, str(answers)]))))[:10]
+        poll_id = hex(abs(hash(''.join([username, question, str(answers)]))))[2:12]
         self.G.add_node(
             poll_id,
             node_type='poll',

@@ -10,14 +10,15 @@ app = Flask(__name__)
 pg = PollGraph()
 TEST_MODE = True
 if TEST_MODE:
-    pg = add_samples(pg)
-
+    pg = add_samples(pg, n_voters=10_000)
 
 @app.route('/get_users', methods=['GET'])
 def get_users():
-    users = pg.get_users()
-    return make_response(users)
-
+    try:
+        users = pg.get_users()
+        return make_response({'successful': True, 'error': None, 'data': users})
+    except Exception as e:
+        return make_response({'successful': False, 'error': str(e)})
 
 @app.route('/get_poll', methods=['POST'])
 def get_poll():
