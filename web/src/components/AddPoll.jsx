@@ -49,7 +49,7 @@ const AddPoll = ({username}) => {
     }
     const newPoll = {username, question, answers: validAnswers}
     try {
-      axios.post('/add_poll', newPoll)
+      axios.post('/api/add_poll', newPoll)
         .then((res) => {
           if (res.data.successful) {
             navigate('/')

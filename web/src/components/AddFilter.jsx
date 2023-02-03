@@ -16,7 +16,7 @@ const AddFilter = ({pollData, filterData, activeFilters, handleAddFilter}) => {
         ignore: filterData.map(f => f.poll_id),
         filters: activeFilters,
       }
-      axios.post('/get_related_polls', postRequest)
+      axios.post('/api/get_related_polls', postRequest)
         .then((res) => {
           setSuggestedFilters(res.data.data)
         })

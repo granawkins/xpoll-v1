@@ -19,7 +19,7 @@ const Filter = ({username, source_id, cross_id, filterIndex, filterData, activeF
       .filter((f, i) => i < filterIndex)
       .reduce((a, b) => ({...a, [b.poll_id]: b.selected}), {})
     try {
-      axios.post('get_crossed_poll', {source_id, cross_id, username, filters})
+      axios.post('/api/get_crossed_poll', {source_id, cross_id, username, filters})
         .then((res) => {
           setCrossedData(res.data.data)
           setFilterPercentages([])

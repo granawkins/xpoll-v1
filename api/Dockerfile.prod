@@ -1,0 +1,17 @@
+# set base image (host OS)
+FROM python:3.8
+
+# set the working directory in the container
+RUN mkdir -p /usr/src/api
+WORKDIR /usr/src/api
+
+# copy the dependencies file to the working directory
+COPY . /usr/src/api
+
+# install dependencies
+RUN pip install -r requirements.txt
+
+ENV FLASK_APP=server.py
+
+# Set the command to run the Flask application
+CMD ["flask", "run", "--host=0.0.0.0"]

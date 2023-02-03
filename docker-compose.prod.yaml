@@ -1,0 +1,56 @@
+version: "3.7"
+
+networks:
+  xpnet:
+
+services:
+
+  # # ref: https://neo4j.com/docs/operations-manual/current/docker/clustering/#docker-cc-setup-dockercompose
+  # xpdb:
+  #   image: neo4j:5.3.0
+  #   hostname: xpdb
+  #   networks:
+  #     - xpnet
+  #   ports:
+  #     - '7474:7474'
+  #     - '7687:7687'
+  #   restart: always
+  #   volumes:
+  #     - $HOME/neo4j/data:/data
+  #     # - ./neo4j.conf:/conf/neo4j.conf # This is the main configuration file.
+  #     - ./data/xpdb:/var/lib/neo4j/data
+  #     - ./logs/xpdb:/var/lib/neo4j/logs
+  #     - ./conf/xpdb:/var/lib/neo4j/conf
+
+  #   environment: #sets up the database
+  #     - NEO4J_AUTH=none
+
+  api:
+    container_name: api
+    build:
+      context: ./api
+      dockerfile: Dockerfile.prod
+    restart: always
+    ports:
+      - 5050:5050
+    # depends_on:
+    #   - 'xpdb'
+    # volumes:
+      # - ./api:/code # get from folder, not image
+    networks:
+      - xpnet
+    environment:
+      - FLASK_APP=server.py
+
+  web:
+    container_name: web
+    build:
+      context: ./web
+      dockerfile: Dockerfile.prod
+    restart: always
+    ports:
+      - 80:80
+    environment:
+      NODE_ENV: production
+    networks:
+      - xpnet
