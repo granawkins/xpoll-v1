@@ -5,7 +5,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
-
+import PageHeader from './PageHeader';
 
 const AddPoll = ({username}) => {
 
@@ -64,12 +64,7 @@ const AddPoll = ({username}) => {
 
   return (
     <Container sx={{padding: '2em', maxWidth: '450px'}}>
-      <Box display='flex' alignItems='center' marginBottom='2em'>
-        <IconButton onClick={() => navigate('/')}>
-          <ArrowBackIcon/>
-        </IconButton>
-        <Typography style={{fontWeight: 600, fontSize: '1.4em', color: theme.offset}}>New Poll</Typography>
-      </Box>
+      <PageHeader pageName='New Poll'/>
       <TextField
         size='small'
         placeholder='Question'

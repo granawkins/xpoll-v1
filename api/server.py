@@ -1,5 +1,5 @@
 # Import flask and datetime module for showing date and time
-from flask import Flask, request, make_response
+from flask import Flask, request, make_response, Blueprint
 
 from poll_graph import PollGraph
 from sample_data import add_samples
@@ -11,7 +11,9 @@ TEST_MODE = True
 if TEST_MODE:
     pg = add_samples(pg, n_voters=10_000)
 
-@app.route('/api/get_users', methods=['GET'])
+api = Blueprint('api', __name__, url_prefix='/api')
+
+@api.route('/get_users', methods=['GET'])
 def get_users():
     try:
         users = pg.get_users()
@@ -19,7 +21,7 @@ def get_users():
     except Exception as e:
         return make_response({'successful': False, 'error': str(e)})
 
-@app.route('/api/get_poll', methods=['POST'])
+@api.route('/get_poll', methods=['POST'])
 def get_poll():
     data = request.get_json()
     args = [data['poll_id']]
@@ -31,7 +33,7 @@ def get_poll():
         return make_response({'successful': False, 'error': str(e)})
 
 
-@app.route('/api/add_user', methods=['POST'])
+@api.route('/add_user', methods=['POST'])
 def add_user():
     data = request.get_json()
     try:
@@ -41,7 +43,7 @@ def add_user():
         return make_response({'successful': False, 'error': str(e)})
 
 
-@app.route('/api/add_poll', methods=['POST'])
+@api.route('/add_poll', methods=['POST'])
 def add_poll():
     data = request.get_json()
     try:
@@ -51,7 +53,7 @@ def add_poll():
         return make_response({'successful': False, 'error': e})
 
 
-@app.route('/api/vote', methods=['POST'])
+@api.route('/vote', methods=['POST'])
 def vote():
     data = request.get_json()
     print(dict(data))
@@ -63,7 +65,7 @@ def vote():
         return make_response({'successful': False, 'error': e})
 
 
-@app.route('/api/feed', methods=['POST'])
+@api.route('/feed', methods=['POST'])
 def feed():
     data = request.get_json()
     username = data.get('username', None)
@@ -76,7 +78,7 @@ def feed():
         return make_response({'successful': False, 'error': e, 'data': None})
 
 
-@app.route('/api/get_related_polls', methods=['POST'])
+@api.route('/get_related_polls', methods=['POST'])
 def get_related_polls():
     data = request.get_json()
     poll_id = data['poll_id']
@@ -89,7 +91,7 @@ def get_related_polls():
         return make_response({'successful': False, 'error': e, 'data': None})
 
 
-@app.route('/api/get_crossed_poll', methods=['POST'])
+@api.route('/get_crossed_poll', methods=['POST'])
 def get_crossed_poll():
     data = request.get_json()
     args = [data.get(k) for k in ('username', 'source_id', 'cross_id')]
@@ -100,7 +102,8 @@ def get_crossed_poll():
     except AssertionError as e:
         return make_response({'successful': False, 'error': e, 'data': None})
 
+# Register the /api endpoint
+app.register_blueprint(api)
 
-# Running app
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000, debug=True)

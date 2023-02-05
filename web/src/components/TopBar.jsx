@@ -3,14 +3,17 @@ import {AppBar, Toolbar, Typography, IconButton, Button} from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import AccountCircleIcon from "@mui/icons-material/AccountCircle"
 import { useLocation, Link } from 'react-router-dom'
-
-import axios from 'axios'
+import { useAuth0 } from "@auth0/auth0-react";
 
 const TopBar = () => {
 
   const theme = useTheme()
 
   const location = useLocation()
+
+  const { loginWithRedirect, isAuthenticated } = useAuth0();
+
+  const showNew = location.pathname !== '/new' && isAuthenticated
 
   return (
     <AppBar sx={{backgroundColor: 'white'}}>
@@ -23,7 +26,7 @@ const TopBar = () => {
         </Link>
 
         <div style={{flexGrow: 1}} />
-        {location.pathname !== '/new' &&
+        {showNew &&
           <Link to='/new' style={{textDecoration: 'none'}}>
             <Button variant='contained' size="small" sx={{backgroundColor: theme.accent}}>
               New Poll
@@ -31,11 +34,21 @@ const TopBar = () => {
           </Link>
         }
         <div style={{width: '1em'}} />
-        <Link to='/account' style={{textDecoration: 'none'}}>
-          <IconButton onClick={() => console.log('go to profile page')}  style={{color: theme.offset}}>
-            <AccountCircleIcon />
-          </IconButton>
-        </Link>
+        {isAuthenticated
+          ? <Link to='/account' style={{textDecoration: 'none'}}>
+            <IconButton style={{color: theme.offset}}>
+              <AccountCircleIcon />
+            </IconButton>
+          </Link>
+          : <Button
+            onClick={() => loginWithRedirect()}
+            variant='contained'
+            size="small"
+            sx={{backgroundColor: theme.accent}}>
+            Login
+            </Button>
+        }
+
       </Toolbar>
     </AppBar>
   )

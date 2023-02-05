@@ -1,63 +1,54 @@
 import {useState, useEffect} from 'react'
-import axios from 'axios'
-import FeedCard from './FeedCard'
-import { Container, Box, Typography, Button } from '@mui/material'
+import PageHeader from './PageHeader'
+
+import { Container, Box, Typography, Button, CircularProgress } from '@mui/material'
+import { useAuth0 } from '@auth0/auth0-react'
+
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableRow from '@mui/material/TableRow';
+
 
 const Account = ({username, setUsername, theme}) => {
 
+  const { logout, user, isLoading } = useAuth0();
 
-    // GET USERS
-    const [users, setUsers] = useState([])
-    useEffect(() => {
-      getUsers()
-    }, [])
-    const getUsers = () => {
-      axios.get('/api/get_users')
-        .then((res) => {
-          setUsers(res.data.data.slice(0, 100))
-        })
-    }
-
-    // ADD USER
-    const [newUsername, setNewUsername] = useState('')
-    const [newUsernameError, setNewUsernameError] = useState(null)
-    const handleNewUsername = (event) => {
-      setNewUsernameError(null)
-      setNewUsername(event.target.value)
-    }
-    const handleAddUser = () => {
-      axios.post('/api/add_user', {username: newUsername})
-      .then((res) => {
-        if (res.data.successful) {
-          setNewUsernameError(null)
-          getUsers()
-        } else {
-          setNewUsernameError(res.data.error)
-        }
-      })
-    }
-
-    // SET ACTIVE USER
-    const handleSetUsername = (event) => {
-      setUsername(event.target.value)
-    }
-    useEffect(() => {
-      if (!username && users.length > 0) {
-        setUsername(users[0])
-      }
-    }, [users])
-
+  const updated = user ? new Date(user.updated_at).toLocaleString() : null
 
   return (
-    <Container maxWidth='xs'>
-      <input type='text' value={newUsername} onChange={handleNewUsername}/>
-      <button onClick={handleAddUser}>Add New User</button>
-      {newUsernameError && <p style={{color: 'red'}}>{newUsernameError}</p>}
-
-      <select selected={username} onChange={handleSetUsername}>
-      {users.map(u => <option key={`active_user_${u}`}>{u}</option>)}
-      </select>
-
+    <Container maxWidth='xs' sx={{padding: '2em', maxWidth: '450px', textAlign: 'center'}}>
+      <PageHeader pageName="My Account" />
+      {isLoading && <CircularProgress />}
+      {!isLoading && !user && <div>Login</div>}
+      {!isLoading && user && <>
+        <img src={user.picture} alt={user.name} />
+        <TableContainer>
+          <Table>
+            <TableBody>
+              <TableRow>
+                <TableCell>Username</TableCell>
+                <TableCell align="right">{user.nickname}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>Email</TableCell>
+                <TableCell align="right">{user.email}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>Last Updated</TableCell>
+                <TableCell align="right">{updated}</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </TableContainer>
+        <Button
+          onClick={() => logout()}
+          variant='contained'
+          size="small"
+          sx={{margin: '2em'}}
+        >Logout</Button>
+      </>}
     </Container>
   )
 }
