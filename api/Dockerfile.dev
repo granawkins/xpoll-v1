@@ -1,0 +1,17 @@
+# Use a base image for your backend (e.g. Python)
+FROM python:3.8-slim
+
+# Set the working directory
+WORKDIR /api
+
+# Copy the code to the container
+COPY . .
+
+# Install the required packages
+RUN pip install -r requirements.txt
+
+# Expose the port for the Flask application
+EXPOSE 5000
+
+# Run the Flask application
+CMD ["flask", "run", "--host=0.0.0.0"]

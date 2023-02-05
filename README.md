@@ -1,18 +1,20 @@
 ## Development
+Run in containers, but use local directory code so updates are live.
 ```
 docker-compose up --build -d
 ```
 
 ## Production
+Setup environments and download dependencies for backend and frontend. Build frontend and serve static files with nginx.
 ```
 docker-compose -f docker-compose.prod.yaml up --build -d
 ```
 
 ## Setting up Linode environment
 
-0. Point the xpoll domain at the working IP address. Navigate to cloud.linode.com/domains, click on xpoll, click "Add an A/AAAA Record", then input the IP address of the active container.
+1. Point the xpoll domain at the working IP address. Navigate to cloud.linode.com/domains, click on xpoll, click "Add an A/AAAA Record", then input the IP address of the active container.
 
-1. Install and configure git. [Source](https://www.linode.com/docs/guides/how-to-install-git-and-clone-a-github-repository/)
+2. Install and configure git. [Source](https://www.linode.com/docs/guides/how-to-install-git-and-clone-a-github-repository/)
 ```
 sudo apt-get update
 sudo apt-get install git -y
@@ -20,13 +22,13 @@ git config --global user.name "First Last"
 git config --global user.email "example@example.com"
 ```
 
-2. Clone repo
+3. Clone repo
 ```
 git clone https://github.com/granawkins/xpoll.git
 cd xpoll
 ```
 
-1. Install `docker-compose`. Source: https://docs.docker.com/engine/install/debian/#set-up-the-repository
+4. Install `docker-compose`. Source: https://docs.docker.com/engine/install/debian/#set-up-the-repository
 
 ```
 // Remove any prior installations of Docker

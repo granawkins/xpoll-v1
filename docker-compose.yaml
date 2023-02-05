@@ -29,29 +29,32 @@ services:
     container_name: api
     build:
       context: ./api
-      dockerfile: Dockerfile #.dev
+      dockerfile: Dockerfile.dev
     restart: always
     ports:
       - 5050:5050
     # depends_on:
     #   - 'xpdb'
-    # volumes:
-      # - ./api:/code # get from folder, not image
+    volumes:
+      - ./api:/api
     networks:
       - xpnet
     environment:
       - FLASK_APP=server.py
+      - FLASK_ENV=development
 
   web:
     container_name: web
     build:
       context: ./web
-      dockerfile: Dockerfile #.dev
+      dockerfile: Dockerfile.dev
     restart: always
     ports:
-      - 80:80
+      - 3000:3000
     environment:
       NODE_ENV: development
+    volumes:
+      - ./web:/web
     networks:
       - xpnet
 

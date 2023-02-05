@@ -11,7 +11,5 @@ COPY . /usr/src/api
 # install dependencies
 RUN pip install -r requirements.txt
 
-ENV FLASK_APP=server.py
-
 # Set the command to run the Flask application
 CMD ["flask", "run", "--host=0.0.0.0"]
