@@ -13,6 +13,10 @@ if TEST_MODE:
 
 api = Blueprint('api', __name__, url_prefix='/api')
 
+@api.route('/register', method=['POST'])
+def register():
+    
+
 @api.route('/get_users', methods=['GET'])
 def get_users():
     try:
@@ -36,8 +40,11 @@ def get_poll():
 @api.route('/add_user', methods=['POST'])
 def add_user():
     data = request.get_json()
+    user_id = data.get('user_id', None)
+    user_data = data.get('user_data', None)
     try:
-        pg.add_user(data['username'])
+        assert user_id is not None, 'user_id is required'
+        pg.add_user(user_id, user_data=user_data)
         return make_response({'successful': True, 'error': None})
     except AssertionError as e:
         return make_response({'successful': False, 'error': str(e)})
@@ -47,7 +54,7 @@ def add_user():
 def add_poll():
     data = request.get_json()
     try:
-        pg.add_poll(data['username'], data['question'], data['answers'])
+        pg.add_poll(data['user_id'], data['question'], data['answers'])
         return make_response({'successful': True, 'error': None})
     except AssertionError as e:
         return make_response({'successful': False, 'error': e})
@@ -58,8 +65,8 @@ def vote():
     data = request.get_json()
     print(dict(data))
     try:
-        pg.vote(data['username'], data['poll_id'], data['answer_id'])
-        poll_data = pg.get_poll(data['poll_id'], username=data['username'])
+        pg.vote(data['user_id'], data['poll_id'], data['answer_id'])
+        poll_data = pg.get_poll(data['poll_id'], user_id=data['user_id'])
         return make_response({'successful': True, 'error': None, 'data': poll_data})
     except AssertionError as e:
         return make_response({'successful': False, 'error': e})
@@ -68,11 +75,11 @@ def vote():
 @api.route('/feed', methods=['POST'])
 def feed():
     data = request.get_json()
-    username = data.get('username', None)
+    user_id = data.get('user_id', None)
     sort_by = data.get('sort_by', 'top')
     page = data.get('page', 1)
     try:
-        feed = pg.feed(username, sort_by, page)
+        feed = pg.feed(user_id, sort_by, page)
         return make_response({'successful': True, 'error': None, 'data': feed})
     except AssertionError as e:
         return make_response({'successful': False, 'error': e, 'data': None})
@@ -94,7 +101,7 @@ def get_related_polls():
 @api.route('/get_crossed_poll', methods=['POST'])
 def get_crossed_poll():
     data = request.get_json()
-    args = [data.get(k) for k in ('username', 'source_id', 'cross_id')]
+    args = [data.get(k) for k in ('user_id', 'source_id', 'cross_id')]
     kwargs = {k: data.get(k, None) for k in {'filters'}}
     try:
         crossed = pg.get_crossed_poll(*args, **kwargs)

@@ -16,7 +16,7 @@ class PollGraph:
     def get_poll_ids(self):
         return [n for n, d in self.G.nodes(data=True) if d['node_type'] == 'poll']
 
-    def feed(self, username=None, sort_by='new', page=1, results_per_page=10):
+    def feed(self, user_id=None, sort_by='new', page=1, results_per_page=10):
         """Return list of all poll_ids"""
         if sort_by == 'new':
             _polls = [(n, data['timestamp']) for n, data in self.G.nodes(data=True)
@@ -31,73 +31,72 @@ class PollGraph:
         if i_start > len(_sorted) - 1:
             return []
         i_end = min(i_start + results_per_page, len(_sorted))
-        response = [self.get_poll(poll_id, username)
+        response = [self.get_poll(poll_id, user_id)
                     for poll_id, _ in _sorted[i_start:i_end]]
         return response
 
-    def add_user(self, username):
-        """Add a username to the graph
+    def add_user(self, user_id, user_data=None):
+        """Add a username to the graph"""
+        assert not self.G.has_node(user_id), 'User_id already exists'
+        user_data = user_data if user_data is not None else {}
+        allowed_fields = {'username', 'email', 'joined'}
+        for k, v in user_data.items():
+            assert k in allowed_fields, f'Unrecognized user_data field: {k}'
+            if k == 'username':
+                assert not any(v == data['username'] for _, data in self.G.nodes(data=True)), \
+                    f'Username is taken'
+        self.G.add_node(user_id, node_type='user', **user_data)
 
-        Raises
-            AssertionError: username already exists
-        """
-        assert not self.G.has_node(username), 'Username already exists'
-
-        self.G.add_node(
-            username,
-            node_type='user',
-        )
-
-    def add_poll(self, username, question, answers):
+    def add_poll(self, user_id, question, answers):
         """Add a poll to the graph
 
         Raises
-            AssertionError: username not recognized
+            AssertionError: user_id not recognized
             AssertionError: question or answers format incorrect
         """
-        assert self.G.has_node(username), f"Username not recognized: {username}"
+        assert self.G.has_node(user_id), f"user_id not recognized: {user_id}"
         assert isinstance(question, str), f"Question must be a string"
         assert (isinstance(answers, list) and
                 len(answers) > 0 and
                 all(isinstance(o, str) for o in answers)), f"Answers must be a list of strings"
 
-        poll_id = hex(abs(hash(''.join([username, question, str(answers)]))))[2:12]
+        poll_id = hex(abs(hash(''.join([user_id, question, str(answers)]))))[2:12]
         self.G.add_node(
             poll_id,
             node_type='poll',
-            author=username,
+            author=user_id,
             question=question,
             answers=answers,
             timestamp=time.time(),
         )
         return poll_id
 
-    def vote(self, username, poll_id, answer_id):
-        """Vote by adding an edge from username to poll_id with answer_id
+    def vote(self, user_id, poll_id, answer_id):
+        """Vote by adding an edge from user_id to poll_id with answer_id
 
         Raises:
-            AssertionError: unnrecognized username or poll_id
+            AssertionError: unnrecognized user_id or poll_id
             AssertionError: already voted
         """
-        assert self.G.has_node(username), f'Unrecognized username: {username}'
+        assert self.G.has_node(user_id), f'Unrecognized user_id: {user_id}'
         assert self.G.has_node(poll_id), f'Unrecognized poll_id: {poll_id}'
-        assert not self.G.has_edge(username, poll_id), f'{username} has already voted'
+        assert not self.G.has_edge(user_id, poll_id), f'{user_id} has already voted'
         answers = dict(self.G.nodes[poll_id])['answers']
         assert 0 <= answer_id <= (len(answers) - 1)
 
-        self.G.add_edge(username, poll_id, answer=answer_id)
+        self.G.add_edge(user_id, poll_id, answer=answer_id)
 
-    def get_poll(self, poll_id, username=None, filters=None):
+    def get_poll(self, poll_id, user_id=None, filters=None):
         """Return the text, author, votes and (if already voted) results"""
         assert self.G.has_node(poll_id), f'Unrecognized poll_id: {poll_id}'
         poll = self.G.nodes[poll_id]
         response = dict(poll)
         response['poll_id'] = poll_id
         response['votes'] = self.G.in_degree(poll_id)
-        if not self.G.has_edge(username, poll_id):
+        if not self.G.has_edge(user_id, poll_id):
             return response
 
-        response['user_answer'] = self.G.edges[username, poll_id]['answer']
+        response['user_answer'] = self.G.edges[user_id, poll_id]['answer']
         if filters is None:
             votes = [data['answer']
                         for _from, _to, data in self.G.in_edges(poll_id, data=True)]
@@ -108,7 +107,7 @@ class PollGraph:
         else:
             voters = set(self.G.predecessors(poll_id))
             for filter_id, answer in filters.items():
-                assert self.G.has_edge(username, filter_id)
+                assert self.G.has_edge(user_id, filter_id)
                 filter_voters = set(v for v in self.G.predecessors(filter_id)
                                     if self.G.edges[v, filter_id]['answer'] == answer)
                 voters = voters.intersection(filter_voters)
@@ -160,12 +159,12 @@ class PollGraph:
         return response
 
 
-    def get_crossed_poll(self, username, source_id, cross_id, filters=None):
+    def get_crossed_poll(self, user_id, source_id, cross_id, filters=None):
         """Return the results"""
 
         # Prepare response text
-        cross = self.get_poll(cross_id, username)
-        source = self.get_poll(source_id, username)
+        cross = self.get_poll(cross_id, user_id)
+        source = self.get_poll(source_id, user_id)
         response = {
             **cross,
             'source_id': source['poll_id'],

@@ -1,4 +1,5 @@
 api/__pycache__/*
+api/auth0_token.json
 web/node_modules/*
 web/build/*
 conf/*
